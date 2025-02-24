@@ -45,6 +45,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -64,14 +66,19 @@ export default {
     },
     async fetchPatientData() {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/patients/get/${this.$route.params.id}`, {
-          headers: { 'accept': 'application/json' }
-        });
-        if (response.ok) {
-          this.patient = await response.json();
-        }
+        const response = await axios.get(
+          `http://127.0.0.1:8000/patients/get/${this.$route.params.id}`,
+          {
+            headers: { accept: "application/json" },
+          }
+        );
+
+        this.patient = response.data;
       } catch (error) {
-        console.error('Error fetching patient data:', error);
+        console.error(
+          "Error fetching patient data:",
+          error.response ? error.response.data : error.message
+        );
       }
     }
   },

@@ -76,6 +76,7 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 export default {
   setup() {
@@ -117,45 +118,39 @@ export default {
           return;
         }
 
-        const response = await fetch('http://127.0.0.1:8000/patients/create/', {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'Content-Type': 'application/json'
+        await axios.post("http://127.0.0.1:8000/patients/create/", {
+          name: this.patient.name,
+          age: parseInt(this.patient.age),
+          gender: this.patient.gender,
+          contact: {
+            phone: this.patient.contact.phone,
+            email: this.patient.contact.email,
+            address: this.patient.contact.address,
           },
-          body: JSON.stringify({
-            name: this.patient.name,
-            age: parseInt(this.patient.age),
-            gender: this.patient.gender,
-            contact: {
-              phone: this.patient.contact.phone,
-              email: this.patient.contact.email,
-              address: this.patient.contact.address
-            },
-            medical_history: this.patient.medical_history.map(history => ({
-              disease: history.disease,
-              diagnosed_date: history.diagnosed_date,
-              treatment: history.treatment
-            })),
-            appointments: [],
-            prescriptions: []
-          })
+          medical_history: this.patient.medical_history.map((history) => ({
+            disease: history.disease,
+            diagnosed_date: history.diagnosed_date,
+            treatment: history.treatment,
+          })),
+          appointments: [],
+          prescriptions: [],
+        }, {
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+          },
         });
 
-        if (response.ok) {
-          // Show success message
-          alert('Patient added successfully');
-          sessionStorage.setItem('needsRefresh', 'true');
-          this.router.push('/admin');
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || 'Failed to save patient');
-        }
+        // Show success message
+        alert("Patient added successfully");
+        sessionStorage.setItem("needsRefresh", "true");
+        this.$router.push("/admin");
       } catch (error) {
-        console.error('Error saving patient:', error);
-        alert(error.message || 'Error saving patient data');
+        console.error("Error saving patient:", error.response ? error.response.data : error.message);
+        alert(error.response?.data?.detail || "Error saving patient data");
       }
     },
+  
     validateForm() {
       // Basic validation
       if (!this.patient.name || !this.patient.age || !this.patient.gender) {

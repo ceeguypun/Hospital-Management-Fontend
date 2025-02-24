@@ -175,47 +175,27 @@ export default {
     };
   },
   methods: {
-    async fetchPatients() {
-      try {
-        // Fetch patients for current page
-        const response = await fetch(
-          `http://127.0.0.1:8000/patients/limit/${this.currentPage}/${this.itemsPerPage}`,
-          {
-            headers: {
-              accept: "application/json",
-            },
-          }
-        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+	async fetchPatients() {
+		try {
+			// ดึงข้อมูลผู้ป่วยเฉพาะหน้าปัจจุบัน
+			const { data: patients } = await axios.get(
+			`http://127.0.0.1:8000/patients/limit/${this.currentPage}/${this.itemsPerPage}`
+			);
+			this.patients = patients.map(
+			(patient) => new Patient(patient.id, patient.name)
+			);
 
-        const patients = await response.json();
-        this.patients = patients.map(
-          (patient) => new Patient(patient.id, patient.name)
-        );
-
-        // Fetch total count of patients
-        const totalResponse = await fetch("http://127.0.0.1:8000/patients/", {
-          headers: {
-            accept: "application/json",
-          },
-        });
-
-        if (!totalResponse.ok) {
-          throw new Error(`HTTP error! status: ${totalResponse.status}`);
-        }
-
-        const totalPatients = await totalResponse.json();
-        this.totalPatientPages = Math.ceil(
-          totalPatients.length / this.itemsPerPage
-        );
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-        this.totalPatientPages = 1; // Reset to 1 if there's an error
-      }
-    },
+			// ดึงจำนวนผู้ป่วยทั้งหมด
+			const { data: totalPatients } = await axios.get(
+			"http://127.0.0.1:8000/patients/"
+			);
+			this.totalPatientPages = Math.ceil(totalPatients.length / this.itemsPerPage);
+		} catch (error) {
+			console.error("Error fetching patients:", error);
+			this.totalPatientPages = 1;
+		}
+	},
 
     async changePage(newPage) {
       // Changed from totalPages to totalPatientPages
@@ -225,47 +205,25 @@ export default {
       }
     },
 
-    async fetchMedicalPersonnel() {
-      try {
-        // Fetch doctors for current doctor page
-        const response = await fetch(
-          `http://127.0.0.1:8000/doctors/limit/${this.currentDoctorPage}/${this.itemsPerDoctorPage}`,
-          {
-            headers: {
-              accept: "application/json",
-            },
-          }
-        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+	async fetchMedicalPersonnel() {
+		try {
+			// ดึงข้อมูลแพทย์เฉพาะหน้าปัจจุบัน
+			const { data: doctors } = await axios.get(
+			`http://127.0.0.1:8000/doctors/limit/${this.currentDoctorPage}/${this.itemsPerDoctorPage}`
+			);
+			this.medicalPersonnel = doctors.map(
+			(person) => new MedicalPersonnel(person.id, person.name)
+			);
 
-        const doctors = await response.json();
-        this.medicalPersonnel = doctors.map(
-          (person) => new MedicalPersonnel(person.id, person.name)
-        );
-
-        // Fetch total count of doctors
-        const totalDoctors = await fetch("http://127.0.0.1:8000/doctors/", {
-          headers: {
-            accept: "application/json",
-          },
-        });
-
-        if (!totalDoctors.ok) {
-          throw new Error(`HTTP error! status: ${totalDoctors.status}`);
-        }
-
-        const doctors_list = await totalDoctors.json();
-        this.totalDoctorPages = Math.ceil(
-          doctors_list.length / this.itemsPerDoctorPage
-        );
-      } catch (error) {
-        console.error("Error fetching medical personnel:", error);
-        this.totalDoctorPages = 1; // Reset to 1 if there's an error
-      }
-    },
+			// ดึงจำนวนแพทย์ทั้งหมด
+			const { data: doctorsList } = await axios.get("http://127.0.0.1:8000/doctors/");
+			this.totalDoctorPages = Math.ceil(doctorsList.length / this.itemsPerDoctorPage);
+		} catch (error) {
+			console.error("Error fetching medical personnel:", error);
+			this.totalDoctorPages = 1; // รีเซ็ตเป็น 1 ถ้ามีข้อผิดพลาด
+		}
+	},
 
     async changeDoctorPage(newPage) {
       if (newPage >= 1 && newPage <= this.totalDoctorPages) {

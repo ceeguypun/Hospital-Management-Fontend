@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -59,28 +61,23 @@ export default {
   methods: {
     async submitForm() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/doctors/create', {
-          method: 'POST',
+        await axios.post("http://127.0.0.1:8000/doctors/create", this.formData, {
           headers: {
-            'accept': 'application/json',
-            'Content-Type': 'application/json'
+            accept: "application/json",
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(this.formData)
         });
 
-        if (response.ok) {
-          alert('Medical personnel added successfully!')
-          this.$router.push('/admin')
-          // Add refresh after navigation
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
-        } else {
-          alert('Failed to add medical personnel')
-        }
+        alert("Medical personnel added successfully!");
+        this.$router.push("/admin");
+
+        // Refresh หลังจากเปลี่ยนหน้า
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       } catch (error) {
-        console.error('Error:', error)
-        alert('Error adding medical personnel')
+        console.error("Error adding medical personnel:", error.response ? error.response.data : error.message);
+        alert("Failed to add medical personnel");
       }
     },
     goBack() {

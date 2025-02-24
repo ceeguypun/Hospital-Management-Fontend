@@ -39,6 +39,8 @@
   </div>
 </template>
 <script>
+import axios from "axios";
+
 export default {
   props: {
     name: {
@@ -67,24 +69,20 @@ export default {
       try {
         const baseUrl = "http://127.0.0.1:8000";
         const endpoint = this.type === "patient" ? "patients" : "doctors";
-        const response = await fetch(`${baseUrl}/${endpoint}/get/${this.id}`, {
-          headers: {
-            accept: "application/json",
-          },
+        
+        // ใช้ axios แทน fetch
+        await axios.get(`${baseUrl}/${endpoint}/get/${this.id}`, {
+          headers: { accept: "application/json" },
         });
 
-        if (response.ok) {
-          // Route to different pages based on type
-          const route =
-            this.type === "patient"
-              ? `/patient/${this.id}`
-              : `/medical/${this.id}`;
-          this.$router.push(route);
-        }
+        // Route ไปยังหน้าที่เหมาะสม
+        const route = this.type === "patient" ? `/patient/${this.id}` : `/medical/${this.id}`;
+        this.$router.push(route);
       } catch (error) {
         console.error("Error fetching details:", error);
       }
     },
+
     confirmDelete() {
       this.deleteWarningCount++;
 
@@ -106,28 +104,20 @@ export default {
       try {
         const baseUrl = "http://127.0.0.1:8000";
         const endpoint = this.type === "patient" ? "patients" : "doctors";
-        const response = await fetch(
-          `${baseUrl}/${endpoint}/delete/${this.id}`,
-          {
-            method: "DELETE",
-            headers: {
-              accept: "application/json",
-            },
-          }
-        );
+        
+        await axios.delete(`${baseUrl}/${endpoint}/delete/${this.id}`, {
+          headers: { accept: "application/json" },
+        });
 
-        if (response.ok) {
-          this.$emit("deleted", { id: this.id, type: this.type });
-        } else {
-          console.error("Failed to delete");
-        }
+        // ส่ง event แจ้งเตือนว่าไอเท็มถูกลบ
+        this.$emit("deleted", { id: this.id, type: this.type });
       } catch (error) {
-        console.error("Error deleting:", error);
+        console.error("Error deleting:", error.response ? error.response.data : error.message);
       } finally {
         this.deleteWarningCount = 0;
         this.showModal = false;
       }
-    },
+    }
   },
 };
 </script>

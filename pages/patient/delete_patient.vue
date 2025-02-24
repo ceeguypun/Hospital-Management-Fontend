@@ -19,6 +19,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -28,26 +30,20 @@ export default {
   methods: {
     async deletePatient() {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/patients/delete/${this.patientId}`, {
-          method: 'DELETE',
-          headers: {
-            'accept': 'application/json'
-          }
+        await axios.delete(`http://127.0.0.1:8000/patients/delete/${this.patientId}`, {
+          headers: { accept: "application/json" },
         });
 
-        if (response.ok) {
-          alert('Patient deleted successfully!')
-          this.$router.push('/admin')
-          // Add refresh after navigation
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
-        } else {
-          alert('Failed to delete patient')
-        }
+        alert("Patient deleted successfully!");
+        this.$router.push("/admin");
+
+        // Refresh หลังจากเปลี่ยนหน้า
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       } catch (error) {
-        console.error('Error deleting patient:', error)
-        alert('Error deleting patient')
+        console.error("Error deleting patient:", error.response ? error.response.data : error.message);
+        alert("Error deleting patient");
       }
     }
   }

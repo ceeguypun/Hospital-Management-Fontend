@@ -38,6 +38,7 @@
 
 <script>
 import Card from "~/components/Card.vue";
+import axios from "axios";
 
 export default {
   components: {
@@ -59,56 +60,52 @@ export default {
   methods: {
     async fetchDoctorData() {
       try {
-        const response = await fetch(
+        const response = await axios.get(
           `http://127.0.0.1:8000/doctors/get/${this.$route.params.id}`,
           {
-            headers: {
-              accept: "application/json",
-            },
+            headers: { accept: "application/json" },
           }
         );
 
-        if (response.ok) {
-          this.doctor = await response.json();
-        } else {
-          this.error = `Failed to fetch doctor details (Status: ${response.status})`;
-          console.error(this.error);
-        }
+        this.doctor = response.data;
       } catch (error) {
-        this.error = `Error fetching doctor: ${error.message}`;
-        console.error("Error:", error);
+        this.error = `Error fetching doctor: ${
+          error.response ? error.response.data.detail || error.response.statusText : error.message
+        }`;
+        console.error("Error fetching doctor:", error.response || error.message);
       }
     },
+
     async fetchPatientsDetails() {
-      this.patientsWithDetails = await Promise.all(
-        this.doctor.patients.map(async (patient) => {
-          try {
-            const response = await fetch(
-              `http://127.0.0.1:8000/patients/get/${patient.patient_id}`,
-              {
-                headers: {
-                  accept: "application/json",
-                },
-              }
-            );
-            if (response.ok) {
-              const patientData = await response.json();
+      try {
+        this.patientsWithDetails = await Promise.all(
+          this.doctor.patients.map(async (patient) => {
+            try {
+              const response = await axios.get(
+                `http://127.0.0.1:8000/patients/get/${patient.patient_id}`,
+                {
+                  headers: { accept: "application/json" },
+                }
+              );
+
               return {
                 ...patient,
-                name: patientData.name,
+                name: response.data.name, // ใช้ response.data ได้เลย ไม่ต้องแปลง .json()
               };
+            } catch (error) {
+              console.error(
+                `Error fetching patient ${patient.patient_id}:`,
+                error.response ? error.response.data : error.message
+              );
+              return patient;
             }
-            return patient;
-          } catch (error) {
-            console.error(
-              `Error fetching patient ${patient.patient_id}:`,
-              error
-            );
-            return patient;
-          }
-        })
-      );
+          })
+        );
+      } catch (error) {
+        console.error("Error fetching patient details:", error.message);
+      }
     },
+    
     goBack() {
       this.$router.push("/admin");
     },
